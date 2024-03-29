@@ -9,6 +9,7 @@
 
 import SpriteKit
 import GameplayKit
+import CoreMotion
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
@@ -26,7 +27,56 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let alienCategory: UInt32 = 0x1 << 1  // some bit, low level shit computation
     let bulletCategory: UInt32 = 0x1 << 0 // this is assignemd to physicsBody?.categoryBitMask
     
+    // Creating accelerometer: (the thing to change the position of screen by playing with the phone)
+    let motionManager = CMMotionManager()
+    var xAccelerate: CGFloat = 0
+    
+    
     // FUNCTIONAL
+    func didBegin(_ contact: SKPhysicsContact) {
+        // Writing a func to define the contact behaviour when 2 objects collide:
+        var alienBody: SKPhysicsBody
+        var bulletBody: SKPhysicsBody
+        
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            bulletBody = contact.bodyA
+            alienBody = contact.bodyB
+        }
+        else {
+            bulletBody = contact.bodyB
+            alienBody = contact.bodyA
+        }
+        
+        // IF alien and a bullet colides we do following:
+        if (alienBody.categoryBitMask & alienCategory) != 0
+            &&
+            (bulletBody.categoryBitMask & bulletCategory) != 0
+        {
+            collisionElements(bulletNode: bulletBody.node as! SKSpriteNode,
+                              alienNode: alienBody.node as! SKSpriteNode)
+        }
+    }
+    
+    
+    func collisionElements(bulletNode: SKSpriteNode, alienNode: SKSpriteNode) {
+        // function is called when 2 objects colide:
+        
+        let explosion = SKEmitterNode(fileNamed: "Explosion") // creating the explosion animation;
+        explosion?.position = alienNode.position // explosion position matches the alien position;
+        self.addChild(explosion!) // not sure is ok to forcefully unwrap here;
+        
+        self.run(SKAction.playSoundFileNamed("explosion.mp3", waitForCompletion: false))
+        
+        bulletNode.removeFromParent() // clean up
+        alienNode.removeFromParent()
+        
+        self.run(SKAction.wait(forDuration: 2)) {
+            explosion?.removeFromParent()
+        }
+        
+        score += 5 // on collision changing the score; 
+    }
+    
     @objc func addAlien() {
         // FUNCTION CREATES A RANDOM ALIEN
         
@@ -96,10 +146,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let animDuration: TimeInterval = 0.3 // animation duration
         
-         // [!] in actions we will store all actions we will store all actions performed on an object;
+        // [!] in actions we will store all actions we will store all actions performed on an object;
         // it seems like swift READS this array and performs this ctions sequentially;
         var actions = [SKAction]()
-    
+        
         // moving the object and removing it when it reaches the end of the screen:
         actions.append(SKAction.move(to: CGPoint(x: player.position.x, y: 800), duration: animDuration))
         actions.append(SKAction.removeFromParent())
@@ -137,12 +187,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.fontColor = UIColor.white
         scoreLabel.position = CGPoint(x: -200, y: 500)
         
-        score = 0 // just nulifying score;
+        score = 0 // nulifying score;
         
         self.addChild(scoreLabel)
         
         // addAlien() is called at certain specific intervals:
         gameTimer = Timer.scheduledTimer(timeInterval: 0.75, target: self, selector: #selector(addAlien), userInfo: nil, repeats: true)
+        
+        // IMPLEMENTING ACCELEROMETER:
+        motionManager.accelerometerUpdateInterval = 0.2 // 200 miliseconds
+        motionManager.startAccelerometerUpdates(to: OperationQueue.current!) { (data: CMAccelerometerData?, error: Error?) in
+            
+            if let accelerometerData = data { 
+                let acceleration = accelerometerData.acceleration
+                self.xAccelerate = CGFloat(acceleration.x * 0.75 + Double(self.xAccelerate) * 0.25)
+            }
+        }
+    }
+    
+    override func didSimulatePhysics() {
+        player.position.x += xAccelerate * 50 // setup speed;
+        
+        if player.position.x < -350 {
+            player.position = CGPoint(x: 350, y: player.position.y)
+        }
+        else if player.position.x > 350 {
+            player.position = CGPoint(x: -350, y: player.position.y)
+        }
     }
     
     
