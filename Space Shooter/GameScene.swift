@@ -88,7 +88,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // defining the alien position on the screen:
         alien.position = CGPoint(x: pos, y: 800)
-        alien.setScale(2)
+        
         
         // PHYSICS:
         // defining alien as a physical object with a rectangle matching its size:
@@ -132,7 +132,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // DEFINING PHYSICS:
         bullet.physicsBody = SKPhysicsBody(circleOfRadius: bullet.size.width / 2)
         bullet.physicsBody?.isDynamic = true
-        bullet.setScale(2)
+        
         
         // defining behaviour for colision (categories):
         bullet.physicsBody?.categoryBitMask = bulletCategory
@@ -176,16 +176,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // CREATING THE STARSHIP (player):
         player = SKSpriteNode(imageNamed: "shuttle")
-        player.position = CGPoint(x: 0, y: -300)
-        player.setScale(2)
+        player.position = CGPoint(x: UIScreen.main.bounds.width / 2, y: 40)
+        
         self.addChild(player)
         
         // CREATING THE SCORE LABEL:
         scoreLabel = SKLabelNode(text: "Score: 0") // creating the label;
         scoreLabel.fontName = "AmericanTypewriter-Bold"
-        scoreLabel.fontSize = 56
+        scoreLabel.fontSize = 36
         scoreLabel.fontColor = UIColor.white
-        scoreLabel.position = CGPoint(x: -200, y: 500)
+        scoreLabel.position = CGPoint(x: 100, y: UIScreen.main.bounds.height - 50)
         
         score = 0 // nulifying score;
         
@@ -208,11 +208,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didSimulatePhysics() {
         player.position.x += xAccelerate * 50 // setup speed;
         
-        if player.position.x < -350 {
-            player.position = CGPoint(x: 350, y: player.position.y)
+        if player.position.x < 0 {
+            player.position = CGPoint(x: UIScreen.main.bounds.width - player.size.width, y: player.position.y)
         }
         else if player.position.x > 350 {
-            player.position = CGPoint(x: -350, y: player.position.y)
+            player.position = CGPoint(x: 20, y: player.position.y)
         }
     }
     
