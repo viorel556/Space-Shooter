@@ -83,11 +83,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         aliens = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: aliens) as! [String]
         
         let alien = SKSpriteNode(imageNamed: aliens[0]) // taking first element from the array;
-        let randomPos = GKRandomDistribution(lowestValue: -350, highestValue: 350)
+        let randomPos = GKRandomDistribution(lowestValue: 20, highestValue: Int(UIScreen.main.bounds.size.width - 20))
         let pos = CGFloat(randomPos.nextInt())
         
         // defining the alien position on the screen:
-        alien.position = CGPoint(x: pos, y: 800)
+        alien.position = CGPoint(x: pos, y: UIScreen.main.bounds.size.height + alien.size.height)
         
         
         // PHYSICS:
@@ -105,7 +105,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let animDuration: TimeInterval = 6 // animation duration;
         var actions = [SKAction]() // Its an array of SKAction type objects;
         
-        actions.append(SKAction.move(to: CGPoint(x: pos, y: -800), duration: animDuration))
+        actions.append(SKAction.move(to: CGPoint(x: pos, y: 0 - alien.size.height), duration: animDuration))
         actions.append(SKAction.removeFromParent()) // removing the object when we are outside of the screen
         
         alien.run(SKAction.sequence(actions))
@@ -151,7 +151,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var actions = [SKAction]()
         
         // moving the object and removing it when it reaches the end of the screen:
-        actions.append(SKAction.move(to: CGPoint(x: player.position.x, y: 800), duration: animDuration))
+        actions.append(SKAction.move(to: CGPoint(x: player.position.x, y: UIScreen.main.bounds.size.height + bullet.size.height), duration: animDuration))
         actions.append(SKAction.removeFromParent())
         
         
@@ -211,7 +211,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if player.position.x < 0 {
             player.position = CGPoint(x: UIScreen.main.bounds.width - player.size.width, y: player.position.y)
         }
-        else if player.position.x > 350 {
+        else if player.position.x > UIScreen.main.bounds.width {
             player.position = CGPoint(x: 20, y: player.position.y)
         }
     }
